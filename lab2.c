@@ -3,12 +3,13 @@
 #include <time.h>
 #include <unistd.h>
 
-#define TABLE_WIDTH 8
+#define TABLE_WIDTH 8l
 
 struct MyTable *initRandomTable();
 void printTable(struct MyTable *table);
 int determineValue(int currValue, int counter);
 struct MyTable *stepTable(struct MyTable *table) ;
+void cleanTable(struct MyTable *table);
 
 struct MyTable {
     int* topGhost;
@@ -28,6 +29,9 @@ int main(int argc, char* argv[]) {
 
     struct MyTable *newTable = stepTable(table);
     printTable(newTable);
+
+    cleanTable(newTable);
+    cleanTable(table);
 
     return 0;
 }
@@ -110,11 +114,13 @@ void printTable(struct MyTable *table) {
  * Since we're planning to parallize this later, we don't  want to have updates
  * inteferring with future updates to the table. */
 struct MyTable *stepTable(struct MyTable *table) {
-    
-    /* initialize new table. I'm using the random function since it creates one
-     * and i don't want to deal with redundant code. We don't care what values
-     * are in these arrays, so the use of the function is fine.*/ 
-    struct MyTable *newTable = initRandomTable();
+
+    struct MyTable *newTable = (struct MyTable *)malloc(sizeof(struct MyTable));
+    newTable->topGhost = (int *)malloc(sizeof(int) * (TABLE_WIDTH - 2));
+    newTable->botGhost = (int *)malloc(sizeof(int) * (TABLE_WIDTH - 2));
+    newTable->leftGhost = (int *)malloc(sizeof(int) * (TABLE_WIDTH - 2));
+    newTable->rightGhost = (int *)malloc(sizeof(int) * (TABLE_WIDTH - 2));
+    newTable->center = (int *)malloc(sizeof(int) * ((TABLE_WIDTH - 2) * (TABLE_WIDTH-2)));
     
     // note to future self: pretend table is a 20x20 array, and use the col and
     // row to determine what block to focus on
@@ -524,4 +530,13 @@ int determineValue(int currValue, int counter) {
     } else {
         return 0;
     }
+}
+
+void cleanTable(struct MyTable *table) {
+    free(table->topGhost);
+    free(table->botGhost);
+    free(table->leftGhost);
+    free(table->rightGhost);
+    free(table->center);
+    free(table);
 }
